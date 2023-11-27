@@ -1,0 +1,17 @@
+# Parser config
+save_dir: "VAM/data/processed"
+bags_dir: "VAM/data/musohu"
+sample_rate: 25.0 # number of frames per second
+ang_offset: 0.0
+skip_traj_shorter: 50 # skip trajectories with fewer frames than skip_traj_short_traj
+topics: # topic names for each sensor
+  depth: ["/zed2/zed_node/depth/depth_registered/compressed"]
+  rgb: ["/zed2/zed_node/rgb/image_rect_color/compressed"]
+  odom: ["/zed2/zed_node/odom"]
+  cmd_vel: ["/action"] # linear and angular velocities
+  lidar: ["/velodyne_points"]
+functions:
+  rgb: "process_rgb"
+  depth: "process_rgb"
+  lidar: "process_pointclouds"
+  odom: "nav_to_xy_yaw"

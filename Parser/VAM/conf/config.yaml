@@ -1,0 +1,137 @@
+# Training parameters
+train_params:
+  debug: True # use during development
+  epochs: 10
+  device: "cpu" # device name, values: "cpu" or "cuda:x" where 'x' is gpu index, or "cuda:a" to use all GPUs
+  optimizer: "adamw"
+  save_every: 10
+  grad_clipping: 0 # set to zero to disable grad clipping
+  start_saving_best: 10 # start epoch of saving best model
+  temp_loss_lambda: 0.5 # weighting the temporal loss
+  subset: True # whether to load a subset of data (it will be the size of the batch size * 2)
+
+# Logger parameters
+logger:
+  workspace: "mhnazeri"
+  project: "VAM" # project name
+  experiment_name: "end2end" # name of the experiment
+  tags: "exp train"
+  resume: False # (boolean) whether to resume training or not
+  online: True # (boolean) whether to store logs online or not
+  experiment_key: "" # can be retrieved from logger dashboard, available if only resuming
+  offline_directory: "./logs" # where to store log data
+  disabled: True # disable the comet ml
+  upload_model: False # upload model to comet
+
+# Dataloader parameters
+dataloader:
+  num_workers: 2 # Allowing multi-processing
+  batch_size: 6
+  shuffle: True # whether to shuffle data or not
+  pin_memory: True # use pageable memory or pinned memory (https://developer.nvidia.com/blog/how-optimize-data-transfers-cuda-cc/)
+  drop_last: False
+
+# Train dataset parameters
+dataset:
+  root: "VAM/data/processed/samples.pkl" # samples.pkl directory
+  train: True # train data
+  seed: 42 # seed number
+  aug_type: "super_hard" # which type of augmentation to use
+  # t_sample_size: 0.8 # train sample size
+  boost: 1 # boost the chance of applying augmentation
+  batch_size: 8
+  resize:
+    - 224 # height
+    - 224 # width
+
+# Validation dataset parameters/ only change parameters that are different from train data
+val_dataset:
+  root: "VAM/data/processed/samples.pkl" # samples.pkl directory
+  train: False 
+  seed: 42 # seed number
+  aug_type: "super_hard" # which type of augmentation to use
+  # t_sample_size: 0.8 # train sample size
+  boost: 1 # boost the chance of applying augmentation
+  batch_size: 8
+  resize:
+    - 64 # height
+    - 85 # width
+
+# directories
+directory:
+  model_name: "end2end" # file name for saved model
+  save: "VAM/checkpoint"
+  load: "checkpoint/end2end-best.pt"
+
+# models parameters
+model:
+  pred_len: 8 # action prediction length
+  obs_len: 6 # observation length
+  action_size: 2 # action space dim
+  aggregation: 'avg' # Aggregation method can be either 'avg' for average_pooling or 'attn' for self-attention
+  obs_context_size: 256
+  z_context_size: 512
+  goal_encoder:
+    dims: [256,] # MLP dimensions.
+    act: 'leakyrelu' # type of activation function. Valid values: [relu, tanh, sigmoid, elu]
+    l_act: False # use activation function on the last layer or just return scores/logits?
+    bn: False # use batchnorm?
+    dropout: 0.3
+    bias: False
+  z_encoder:
+    # dims: [3136, 4096, 1024, 512, 128, 64, 16] # First dim should always be [obs_window * backbonetype.out + 32 + 32] dino=2368,resnet[18, 34]=3136,resnet50=12352
+    # First dim should always be [obs_window * backbonetype.out + 32 + 32]: dino=2368,resnet[18|34]=3104,resnet50=12352
+    dims: [1024,]
+    act: 'leakyrelu' # type of activation function. Valid values: [relu, tanh, sigmoid, elu]
+    l_act: False # use activation function on the last layer or just return scores/logits?
+    bn: False # use batchnorm?
+    dropout: 0.2
+    bias: False
+  image_encoder:
+    name: "resnet18" # options = ['dino', 'resnet18', 'resnet34', 'resnet50', 'vam18', 'vam34', 'vam50']
+    pretrained: False
+    vam_pretrained: "checkpoint/vam-best.pt"
+
+# model initializer
+init_model:
+  method: "uniform" # kaiming_normal, kaiming_uniform, normal, uniform, xavier_normal, xavier_uniform
+  mean: 0.0 # mean of normal distribution
+  std: 0.5 # standard deviation for normal distribution
+  low: 0.0 # minimum threshold for uniform distribution
+  high: 1.0 # maximum threshold for uniform distribution
+  mode: "fan_in" # either 'fan_in' (default) or 'fan_out'. Choosing 'fan_in' preserves the magnitude of the variance of the weights in the forward pass. Choosing 'fan_out' preserves the magnitudes in the backwards pass.
+  nonlinearity: "leaky_relu" # the non-linear function (nn.functional name), recommended to use only with 'relu' or 'leaky_relu' (default).
+  gain: 1.0 # an optional scaling factor for xavier initialization
+
+# Adam parameters if using Adam optimizer
+adamw:
+  lr: 5e-4
+  betas:
+    - 0.9
+    - 0.999
+  eps: 1e-8
+  weight_decay: 0
+  amsgrad: False
+
+# RMSprop parameters if using RMSprop optimizer
+rmsprop:
+  lr: 1e-3
+  momentum: 0
+  alpha: 0.99
+  eps: 1e-8
+  centered: False
+  weight_decay: 0
+
+# SGD parameters if using SGD optimizer
+sgd:
+  lr: 1e-3
+  momentum: 0 # momentum factor
+  weight_decay: 0 # weight decay (L2 penalty)
+  dampening: 0 # dampening for momentum
+  nesterov: False # enables Nesterov momentum
+
+# Stochastic Weight Averaging parameters
+SWA:
+  anneal_strategy: "linear" # 'linear' of 'cos'
+  anneal_epochs: 5 # anneals the lr from its initial value to swa_lr in anneal_epochs within each parameter group
+  swa_lr: 0.05

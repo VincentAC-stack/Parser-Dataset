@@ -1,0 +1,20 @@
+# Parser config
+save_dir: "VAM/data/processed"
+bags_dir: "VAM/data/scand"
+sample_rate: 4.0 # number of frames per second
+ang_offset: 0.0
+skip_traj_shorter: 20 # skip trajectories with fewer frames than skip_traj_short_traj
+jackal: # topic names for each sensor
+  rgb: ["/left/image_color/compressed"]
+  odom: ["/jackal_velocity_controller/odom"]
+  cmd_vel: ["/bluetooth_teleop/joy"] # joystick
+  lidar: ["/velodyne_points"]
+spot: # topic names for each sensor
+  rgb: ["/image_raw/compressed"]
+  odom: ["/odom"]
+  cmd_vel: ["/joystick"] # linear and angular velocities
+  lidar: ["/velodyne_points"]
+functions:
+  rgb: "process_rgb"
+  lidar: "process_pointclouds"
+  odom: "nav_to_xy_yaw_scand"
